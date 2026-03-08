@@ -5,13 +5,13 @@ pipeline {
         AWS_REGION     = "us-east-1"
         AWS_ACCOUNT_ID = "249608715148"
 
-        ECR_REPO  = "user-service"
+        ECR_REPO  = "product-service"
         ECR_URI   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
         IMAGE_TAG = "${BUILD_NUMBER}"
 
         ECS_CLUSTER = "DevCluster"
-        ECS_SERVICE = "user-service1-service-8cgwko84"
-        TASK_FAMILY = "user-service1"
+        ECS_SERVICE = "product-service-service-nlr75ec1"
+        TASK_FAMILY = "product-service"
     }
 
     stages {
@@ -88,7 +88,7 @@ pipeline {
                       .registeredBy
                     )
                   | .containerDefinitions |= map(
-                        if .name == "user-service1"
+                        if .name == "product-service"
                         then .image = $IMAGE
                         else .
                         end
