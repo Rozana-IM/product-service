@@ -1,33 +1,49 @@
-exports.getProducts = (req, res) => {
+const db = require("../db");
 
-    let query = "SELECT * FROM products WHERE 1=1";
-    let values = [];
+// Get all products
+const getProducts = async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM products");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
-    if (req.query.category) {
-        query += " AND category = ?";
-        values.push(req.query.category);
-    }
 
-    if (req.query.minPrice) {
-        query += " AND price >= ?";
-        values.push(req.query.minPrice);
-    }
+// Get product by ID
+const getProductById = async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM products WHERE id = $1",
+      [req.params.id]
+    );
 
-    if (req.query.maxPrice) {
-        query += " AND price <= ?";
-        values.push(req.query.maxPrice);
-    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
-    if (req.query.search) {
-        query += " AND name LIKE ?";
-        values.push(`%${req.query.search}%`);
-    }
 
-    db.query(query, values, (err, results) => {
+// Get products by category
+const getCategoryProducts = async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT * FROM products WHERE category = $1",
+      [req.params.category]
+    );
 
-        if(err) return res.status(500).json(err);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
-        res.json(results);
 
-    });
+module.exports = {
+  getProducts,
+  getProductById,
+  getCategoryProducts,
 };
