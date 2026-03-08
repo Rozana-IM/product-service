@@ -6,7 +6,7 @@ const productRoutes = require("./routes/product.routes");
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 6000;
 
 
 // ================= Middleware =================
