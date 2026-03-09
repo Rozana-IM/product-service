@@ -1,4 +1,4 @@
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -11,15 +11,14 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-const connect = () => {
-  pool.getConnection((err, connection) => {
-    if (err) {
-      console.error("❌ Product Service DB connection failed:", err.message);
-      return;
-    }
+const connect = async () => {
+  try {
+    const connection = await pool.getConnection();
     console.log("✅ Product Service DB connected");
     connection.release();
-  });
+  } catch (err) {
+    console.error("❌ Product Service DB connection failed:", err.message);
+  }
 };
 
 module.exports = { pool, connect };
