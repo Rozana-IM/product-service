@@ -1,10 +1,10 @@
-const db = require("../db");
+const { pool } = require("../db");
 
 /* GET ALL PRODUCTS */
 const getProducts = async (req, res) => {
   try {
 
-    const [rows] = await db.query("SELECT * FROM products");
+    const [rows] = await pool.query("SELECT * FROM products");
 
     res.json(rows);
 
@@ -19,7 +19,7 @@ const getProducts = async (req, res) => {
 const getProductById = async (req, res) => {
   try {
 
-    const [rows] = await db.query(
+    const [rows] = await pool.query(
       "SELECT * FROM products WHERE id = ?",
       [req.params.id]
     );
@@ -37,7 +37,7 @@ const getProductById = async (req, res) => {
 const getCategoryProducts = async (req, res) => {
   try {
 
-    const [rows] = await db.query(
+    const [rows] = await pool.query(
       "SELECT * FROM products WHERE category = ?",
       [req.params.category]
     );
