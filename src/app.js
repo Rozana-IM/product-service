@@ -15,7 +15,9 @@ app.use(cors({
   credentials: true
 }));
 
-db.connect();
+db.connect()
+  .then(() => console.log("DB connected"))
+  .catch(err => console.error("DB error:", err));
 
 /* ROUTES */
 app.use("/products", productRoutes);
