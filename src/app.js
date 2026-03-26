@@ -18,7 +18,7 @@ app.use(cors({
 db.connect();
 
 /* ROUTES */
-app.use("/", productRoutes);
+app.use("/products", productRoutes);
 
 /* HEALTH CHECK */
 app.get("/health", (req, res) => {
