@@ -24,7 +24,7 @@ app.use("/products", productRoutes);
 
 /* HEALTH CHECK */
 app.get("/health", (req, res) => {
-  res.send("Product Service is healthy");
+res.status(200).json({ status: "ok" });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
