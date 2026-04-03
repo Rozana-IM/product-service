@@ -5,8 +5,7 @@ const productController = require("../controllers/product.controller");
 const { verifyToken, verifyAdmin } = require("../middleware/auth.middleware");
 
 // ✅ ADMIN: Add product
-router.post("/", verifyToken, isAdmin, productController.createProduct);
-
+router.post("/", verifyToken, verifyAdmin, productController.createProduct);
 // ✅ PUBLIC: Get all products
 router.get("/", productController.getProducts);
 
