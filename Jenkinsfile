@@ -39,26 +39,29 @@ pipeline {
 
         // ================= BUILD & PUSH =================
         stage('Build & Push Image') {
-            steps {
-                sh '''
-                #!/bin/bash
-                set -eux
+    steps {
+        sh '''
+        #!/bin/bash
+        set -eux
 
-                echo "Building Docker image..."
+        echo "Building Docker image..."
 
-                docker build -t $ECR_REPO:$IMAGE_TAG .
+        docker build -t $ECR_REPO:$IMAGE_TAG .
 
-                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
-                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:latest
+        # ✅ Tag version
+        docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
 
-                echo "Pushing BUILD image..."
-                docker push $ECR_URI:$IMAGE_TAG
+        # ✅ Tag latest from LOCAL image (IMPORTANT FIX)
+        docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:latest
 
-                echo "Updating latest tag..."
-                docker push $ECR_URI:latest
-                '''
-            }
-        }
+        echo "Pushing versioned image..."
+        docker push $ECR_URI:$IMAGE_TAG
+
+        echo "Pushing latest image..."
+        docker push $ECR_URI:latest
+        '''
+    }
+}
 
         // ================= CREATE NEW TASK REVISION =================
         stage('Create NEW Task Revision') {
@@ -129,8 +132,9 @@ pipeline {
     }
 
     post {
-        always {
-            sh 'docker image prune -f'
-        }
+    always {
+        sh '''
+        docker image prune -f || true
+        '''
     }
 }
