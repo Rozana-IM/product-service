@@ -16,20 +16,16 @@ pipeline {
 
     stages {
 
-        // ================= CHECKOUT =================
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        // ================= LOGIN TO ECR =================
         stage('Login ECR') {
             steps {
                 sh '''
-                #!/bin/bash
                 set -eux
-
                 aws ecr get-login-password --region $AWS_REGION | \
                 docker login --username AWS \
                 --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
@@ -37,47 +33,38 @@ pipeline {
             }
         }
 
-        // ================= BUILD & PUSH =================
         stage('Build & Push Image') {
-    steps {
-        sh '''
-        #!/bin/bash
-        set -eux
+            steps {
+                sh '''
+                set -eux
 
-        echo "Building Docker image..."
+                echo "Building Docker image..."
 
-        docker build -t $ECR_REPO:$IMAGE_TAG .
+                docker build -t $ECR_REPO:$IMAGE_TAG .
 
-        # ✅ Tag version
-        docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+                # Tag images
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:latest
 
-        # ✅ Tag latest from LOCAL image (IMPORTANT FIX)
-        docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:latest
+                # Push images
+                echo "Pushing version..."
+                docker push $ECR_URI:$IMAGE_TAG
 
-        echo "Pushing versioned image..."
-        docker push $ECR_URI:$IMAGE_TAG
+                echo "Pushing latest..."
+                docker push $ECR_URI:latest
+                '''
+            }
+        }
 
-        echo "Pushing latest image..."
-        docker push $ECR_URI:latest
-        '''
-    }
-}
-
-        // ================= CREATE NEW TASK REVISION =================
         stage('Create NEW Task Revision') {
             steps {
                 sh '''
-                #!/bin/bash
                 set -eux
-
-                echo "Downloading existing task definition..."
 
                 aws ecs describe-task-definition \
                   --task-definition $TASK_FAMILY \
                   --region $AWS_REGION \
                   > task-def.json
-
-                echo "Injecting new image..."
 
                 jq --arg IMAGE "$ECR_URI:$IMAGE_TAG" '
                   .taskDefinition
@@ -98,8 +85,6 @@ pipeline {
                     )
                 ' task-def.json > new-task-def.json
 
-                echo "Registering new revision..."
-
                 aws ecs register-task-definition \
                   --region $AWS_REGION \
                   --cli-input-json file://new-task-def.json \
@@ -110,16 +95,12 @@ pipeline {
             }
         }
 
-        // ================= DEPLOY NEW REVISION =================
         stage('Deploy New Revision') {
             steps {
                 sh '''
-                #!/bin/bash
                 set -eux
 
                 REVISION=$(cat revision.txt)
-
-                echo "Deploying revision $REVISION"
 
                 aws ecs update-service \
                   --cluster $ECS_CLUSTER \
@@ -132,9 +113,10 @@ pipeline {
     }
 
     post {
-    always {
-        sh '''
-        docker image prune -f || true
-        '''
+        always {
+            sh '''
+            docker image prune -f || true
+            '''
+        }
     }
 }
