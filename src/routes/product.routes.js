@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const productController = require("../controllers/product.controller");
-const { verifyToken, isAdmin } = require("../middleware/auth");
+const { verifyToken, verifyAdmin } = require("../middleware/auth.middleware");
 
 // ✅ ADMIN: Add product
 router.post("/", verifyToken, isAdmin, productController.createProduct);
